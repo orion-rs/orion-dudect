@@ -7,10 +7,10 @@ matrix:
   include:
     - rust: stable
       script:
-      - sh run_benches.sh
+      - sh run_benches_stable.sh
       - cargo test -- --nocapture
 
     - rust: nightly
       script:
-        - sh run_benches.sh
-        - cargo test --no-default-features --features nightly -- --nocapture
+        - sh run_benches_nightly.sh
+        - cargo test -- --nocapture
