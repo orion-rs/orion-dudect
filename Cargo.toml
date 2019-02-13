@@ -1,0 +1,20 @@
+[package]
+name = "orion-dudect"
+version = "0.1.0"
+authors = ["brycx <brycx@protonmail.com>"]
+edition = "2018"
+
+[dependencies]
+dudect-bencher = "0.3.0"
+rand = "0.3"
+orion = { git = "https://github.com/brycx/orion/" }
+clap = "2.25"
+ctrlc = "3.0"
+regex = "1"
+
+[features]
+nightly = [ "orion/nightly" ]
+
+[[bin]]
+name = "secure_cmp"
+path = "ct-bencher/secure_cmp.rs"

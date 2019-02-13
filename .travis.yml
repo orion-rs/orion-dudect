@@ -1,0 +1,16 @@
+language: rust
+sudo: required
+dist: trusty
+cache: cargo
+
+matrix:
+  include:
+    - rust: stable
+      script:
+      - sh run_benches.sh
+      - cargo test -- --nocapture
+
+    - rust: nightly
+      script:
+        - sh run_benches.sh
+        - cargo test --no-default-features --features nightly -- --nocapture
