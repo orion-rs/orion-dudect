@@ -1,7 +1,0 @@
-
-running 1 bench
-bench test_secure_cmp seeded with [0x81673a0a, 0xed487991, 0x55af4972, 0x9775d80c]
-bench test_secure_cmp ... : n == +0.059M, max t = -101.37258, max tau = -0.41604, (5/tau)^2 = 144
-
-dudect benches complete
-
