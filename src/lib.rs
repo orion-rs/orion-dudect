@@ -1,3 +1,6 @@
+/// Number of testing samples to generate.
+pub const NUMBER_OF_SAMPLES: usize = 100_000_0;
+
 #[cfg(test)]
 mod tests {
 
