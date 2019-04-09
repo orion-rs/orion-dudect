@@ -1,14 +1,13 @@
 #[macro_use]
 extern crate dudect_bencher;
-extern crate orion;
 extern crate rand;
 extern crate orion_dudect;
+extern crate subtle;
 
 use dudect_bencher::{BenchRng, Class, CtRunner};
-use orion::hazardous::mac::poly1305;
-use orion::hazardous::constants::POLY1305_KEYSIZE;
 use rand::Rng;
 use orion_dudect::NUMBER_OF_SAMPLES;
+use subtle::ConstantTimeEq;
 
 // Return a random vector of length len
 fn rand_vec(len: usize, rng: &mut BenchRng) -> Vec<u8> {
@@ -18,9 +17,9 @@ fn rand_vec(len: usize, rng: &mut BenchRng) -> Vec<u8> {
 }
 
 // Based on `dudect-bencher`s examples.
-fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
+fn test_secure_cmp(runner: &mut CtRunner, rng: &mut BenchRng) {
     // The length of input vectors.
-    let vlen = POLY1305_KEYSIZE;
+    let vlen = 32;
     
     let mut inputs: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
     let mut classes = Vec::new();
@@ -42,10 +41,8 @@ fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
 
     // Run timing
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
-        // u will be used as SecretKey and v as message to be authenticated.
-        let sk = poly1305::OneTimeKey::from_slice(&u[..]).unwrap();
-        runner.run_one(class, || poly1305::poly1305(&sk, &v[..]).unwrap());
+        runner.run_one(class, || u[..].ct_eq(&v[..]));
     }
 }
 
-ctbench_main!(test_poly1305);
+ctbench_main!(test_secure_cmp);

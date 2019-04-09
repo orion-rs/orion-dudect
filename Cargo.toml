@@ -11,14 +11,24 @@ orion = { git = "https://github.com/brycx/orion/" }
 clap = "2.25"
 ctrlc = "3.0"
 regex = "1"
+constant_time_eq = "0.1.3"
+subtle = "2"
 
 [features]
 nightly = [ "orion/nightly" ]
 
 [[bin]]
-name = "secure_cmp"
-path = "ct-bencher/secure_cmp.rs"
+name = "orion"
+path = "ct-bencher/orion.rs"
 
 [[bin]]
-name = "poly1305"
-path = "ct-bencher/poly1305.rs"
+name = "subtle"
+path = "ct-bencher/subtle.rs"
+
+[[bin]]
+name = "custom"
+path = "ct-bencher/custom.rs"
+
+[[bin]]
+name = "constant_time_eq"
+path = "ct-bencher/constant_time_eq.rs"
