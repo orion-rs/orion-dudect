@@ -5,12 +5,26 @@ cache: cargo
 
 matrix:
   include:
-    - rust: stable
+    - name: "stable + debug"
+      rust: stable
       script:
-      - sh run_benches_stable.sh
+      - sh run_benches_stable_debug.sh
       - cargo test -- --nocapture
 
-    - rust: nightly
+    - name: "stable + release"
+      rust: stable
       script:
-        - sh run_benches_nightly.sh
-        - cargo test -- --nocapture
+      - sh run_benches_stable_release.sh
+      - cargo test -- --nocapture
+
+    - name: "nightly + debug"
+      rust: nightly
+      script:
+      - sh run_benches_nightly_debug.sh
+      - cargo test -- --nocapture
+
+    - name: "nightly + release"
+      rust: nightly
+      script:
+      - sh run_benches_nightly_release.sh
+      - cargo test -- --nocapture
