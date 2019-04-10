@@ -2,28 +2,18 @@
 extern crate dudect_bencher;
 extern crate rand;
 extern crate orion_dudect;
+extern crate subtle;
 
 use dudect_bencher::{BenchRng, Class, CtRunner};
 use rand::Rng;
 use orion_dudect::NUMBER_OF_SAMPLES;
+use subtle::ConstantTimeEq;
 
 // Return a random vector of length len
 fn rand_vec(len: usize, rng: &mut BenchRng) -> Vec<u8> {
     let mut arr = vec![0u8; len];
     rng.fill_bytes(&mut arr);
     arr
-}
-
-fn cmpct(a: &[u8], b: &[u8]) -> u8 {
-    assert!(a.len() == b.len());
-    
-    let mut res: u8 = 0;
-    
-    for idx in 0..a.len() {
-        res |= a[idx] ^ b[idx];
-    }
-
-    res
 }
 
 // Based on `dudect-bencher`s examples.
@@ -51,7 +41,7 @@ fn test_secure_cmp(runner: &mut CtRunner, rng: &mut BenchRng) {
 
     // Run timing
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
-        runner.run_one(class, || cmpct(&u[..], &v[..]));
+        runner.run_one(class, || bool::from(u[..].ct_eq(&v[..])));
     }
 }
 
