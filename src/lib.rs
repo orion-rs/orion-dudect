@@ -21,7 +21,7 @@ mod tests {
             for cap in re.captures_iter(&line) {
                 let (_, tval) = &cap[0].split_at(8); // Splits before a "+" or "-"
                 // For debugging
-                println!("Read: max t: {}", tval);
+                println!("Read: max t: {} from {} tests", tval, bench_result_name);
                 
                 let parsed = &tval.parse::<f64>();
                 match parsed {
