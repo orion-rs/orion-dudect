@@ -6,8 +6,8 @@ extern crate orion_dudect;
 
 use dudect_bencher::{BenchRng, Class, CtRunner};
 use orion::util::secure_cmp;
-use rand::Rng;
 use orion_dudect::NUMBER_OF_SAMPLES;
+use rand::{Rng, RngCore};
 
 // Return a random vector of length len
 fn rand_vec(len: usize, rng: &mut BenchRng) -> Vec<u8> {
