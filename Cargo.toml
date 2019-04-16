@@ -23,3 +23,7 @@ path = "ct-bencher/secure_cmp.rs"
 [[bin]]
 name = "poly1305"
 path = "ct-bencher/poly1305.rs"
+
+[[bin]]
+name = "newtype"
+path = "ct-bencher/newtype.rs"

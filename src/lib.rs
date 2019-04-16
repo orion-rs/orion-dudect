@@ -53,4 +53,5 @@ mod tests {
 
     dudect_test_results!(dudect_secure_cmp, "secure_cmp");
     dudect_test_results!(dudect_poly1305, "poly1305");
+    dudect_test_results!(dudect_newtype, "newtype");
 }
