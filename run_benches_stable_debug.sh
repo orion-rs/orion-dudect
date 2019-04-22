@@ -3,5 +3,5 @@ for file in ct-bencher/*[.rs];
         mkdir bench-results;
         filename=$(basename "$file");
         fname="${filename%.*}"; # Filename without .rs extension
-        RUSTFLAGS="-C opt-level=$1" cargo run --bin $fname > bench-results/$fname.txt;
+        RUSTFLAGS="-C $1" cargo run --bin $fname > bench-results/$fname.txt;
     done

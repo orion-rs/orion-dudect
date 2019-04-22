@@ -5,33 +5,112 @@ cache: cargo
 
 matrix:
   allow_failures:
-    - env: OPT_LEVEL_0 = 0
+    - env: 'OPT-LEVEL=0'
 
+  # -C opt-level = 0
   include:
     - name: "stable + debug"
       rust: stable
-      env: OPT_LEVEL = 0
+      env: 'OPT-LEVEL=0'
       script:
-      - sh run_benches_stable_debug.sh $OPT_LEVEL
-      - cargo test -- --nocapture
+        - sh run_benches_stable_debug.sh opt-level=0
+        - cargo test -- --nocapture
 
     - name: "stable + release"
       rust: stable
-      env: OPT_LEVEL = 0
+      env: 'OPT-LEVEL=0'
       script:
-      - sh run_benches_stable_release.sh $OPT_LEVEL
-      - cargo test -- --nocapture
+        - sh run_benches_stable_release.sh opt-level=0
+        - cargo test -- --nocapture
 
     - name: "nightly + debug"
       rust: nightly
-      env: OPT_LEVEL = 0
+      env: 'OPT-LEVEL=0'
       script:
-      - sh run_benches_nightly_debug.sh $OPT_LEVEL
-      - cargo test -- --nocapture
+        - sh run_benches_nightly_debug.sh opt-level=0
+        - cargo test -- --nocapture
 
     - name: "nightly + release"
       rust: nightly
-      env: OPT_LEVEL = 0
+      env: 'OPT-LEVEL=0'
       script:
-      - sh run_benches_nightly_release.sh $OPT_LEVEL
-      - cargo test -- --nocapture
+        - sh run_benches_nightly_release.sh opt-level=0
+        - cargo test -- --nocapture
+
+  # -C opt-level = 1
+  include:
+    - name: "stable + debug"
+      rust: stable
+      script:
+        - sh run_benches_stable_debug.sh opt-level=1
+        - cargo test -- --nocapture
+
+    - name: "stable + release"
+      rust: stable
+      script:
+        - sh run_benches_stable_release.sh opt-level=1
+        - cargo test -- --nocapture
+
+    - name: "nightly + debug"
+      rust: nightly
+      script:
+        - sh run_benches_nightly_debug.sh opt-level=1
+        - cargo test -- --nocapture
+
+    - name: "nightly + release"
+      rust: nightly
+      script:
+        - sh run_benches_nightly_release.sh opt-level=1
+        - cargo test -- --nocapture
+
+  # -C opt-level = 2
+    include:
+    - name: "stable + debug"
+      rust: stable
+      script:
+        - sh run_benches_stable_debug.sh opt-level=2
+        - cargo test -- --nocapture
+
+    - name: "stable + release"
+      rust: stable
+      script:
+        - sh run_benches_stable_release.sh opt-level=2
+        - cargo test -- --nocapture
+
+    - name: "nightly + debug"
+      rust: nightly
+      script:
+        - sh run_benches_nightly_debug.sh opt-level=2
+        - cargo test -- --nocapture
+
+    - name: "nightly + release"
+      rust: nightly
+      script:
+        - sh run_benches_nightly_release.sh opt-level=2
+        - cargo test -- --nocapture
+
+  # -C opt-level = 3
+    include:
+    - name: "stable + debug"
+      rust: stable
+      script:
+        - sh run_benches_stable_debug.sh opt-level=3
+        - cargo test -- --nocapture
+
+    - name: "stable + release"
+      rust: stable
+      script:
+        - sh run_benches_stable_release.sh opt-level=3
+        - cargo test -- --nocapture
+
+    - name: "nightly + debug"
+      rust: nightly
+      script:
+        - sh run_benches_nightly_debug.sh opt-level=3
+        - cargo test -- --nocapture
+
+    - name: "nightly + release"
+      rust: nightly
+      script:
+        - sh run_benches_nightly_release.sh opt-level=3
+        - cargo test -- --nocapture
