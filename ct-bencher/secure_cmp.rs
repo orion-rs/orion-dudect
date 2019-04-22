@@ -41,7 +41,7 @@ fn test_secure_cmp(runner: &mut CtRunner, rng: &mut BenchRng) {
 
     // Run timing
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
-        runner.run_one(class, || secure_cmp(&u[..], &v[..]));
+        runner.run_one(class, || secure_cmp(&u[..], &v[..]).is_ok());
     }
 }
 
