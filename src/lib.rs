@@ -43,9 +43,9 @@ mod tests {
             fn $test_name() {
                 let max_t_measurements = read_bench_out($bench_to_read);
                 for t_value in max_t_measurements.iter() {
-                    // max t must be in range of -5..5.
-                    assert!(*t_value <= 5f64);
-                    assert!(*t_value >= -5f64);
+                    // max t must be in range of -4.5..4.5.
+                    assert!(*t_value <= 4.5f64);
+                    assert!(*t_value >= -4.5f64);
                 }
             }
 		};
