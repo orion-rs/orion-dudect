@@ -4,11 +4,12 @@ dist: trusty
 cache: cargo
 
 matrix:
+  
   allow_failures:
     - env: 'OPT-LEVEL=0'
-
-  # -C opt-level = 0
+  
   include:
+    # -C opt-level = 0
     - name: "stable + debug"
       rust: stable
       env: 'OPT-LEVEL=0'
@@ -38,7 +39,6 @@ matrix:
         - cargo test -- --nocapture
 
   # -C opt-level = 1
-  include:
     - name: "stable + debug"
       rust: stable
       script:
@@ -64,7 +64,6 @@ matrix:
         - cargo test -- --nocapture
 
   # -C opt-level = 2
-    include:
     - name: "stable + debug"
       rust: stable
       script:
@@ -90,7 +89,6 @@ matrix:
         - cargo test -- --nocapture
 
   # -C opt-level = 3
-    include:
     - name: "stable + debug"
       rust: stable
       script:
