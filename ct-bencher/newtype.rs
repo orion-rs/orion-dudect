@@ -6,8 +6,7 @@ extern crate orion_dudect;
 
 use rand::{Rng, RngCore};
 use dudect_bencher::{BenchRng, Class, CtRunner};
-use orion::hazardous::stream::chacha20::SecretKey;
-use orion::hazardous::constants::CHACHA_KEYSIZE;
+use orion::hazardous::stream::chacha20::{CHACHA_KEYSIZE, SecretKey};
 use orion_dudect::NUMBER_OF_SAMPLES;
 
 // Return a random vector of length len

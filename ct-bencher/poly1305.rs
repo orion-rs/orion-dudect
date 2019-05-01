@@ -6,8 +6,7 @@ extern crate orion_dudect;
 
 use rand::{Rng, RngCore};
 use dudect_bencher::{BenchRng, Class, CtRunner};
-use orion::hazardous::mac::poly1305;
-use orion::hazardous::constants::POLY1305_KEYSIZE;
+use orion::hazardous::mac::poly1305::{self, POLY1305_KEYSIZE};
 use orion_dudect::NUMBER_OF_SAMPLES;
 
 // Return a random vector of length len
