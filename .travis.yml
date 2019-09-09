@@ -14,6 +14,7 @@ matrix:
       rust: stable
       env: 'OPT-LEVEL=0'
       script:
+        - cargo clean
         - sh run_benches_stable_debug.sh opt-level=0
         - cargo test -- --nocapture
 
@@ -21,6 +22,7 @@ matrix:
       rust: stable
       env: 'OPT-LEVEL=0'
       script:
+        - cargo clean
         - sh run_benches_stable_release.sh opt-level=0
         - cargo test -- --nocapture
 
@@ -28,6 +30,7 @@ matrix:
       rust: nightly
       env: 'OPT-LEVEL=0'
       script:
+        - cargo clean
         - sh run_benches_nightly_debug.sh opt-level=0
         - cargo test -- --nocapture
 
@@ -35,6 +38,7 @@ matrix:
       rust: nightly
       env: 'OPT-LEVEL=0'
       script:
+        - cargo clean
         - sh run_benches_nightly_release.sh opt-level=0
         - cargo test -- --nocapture
 
@@ -42,24 +46,28 @@ matrix:
     - name: "stable + debug + -C opt-level = 1"
       rust: stable
       script:
+        - cargo clean
         - sh run_benches_stable_debug.sh opt-level=1
         - cargo test -- --nocapture
 
     - name: "stable + release + -C opt-level = 1"
       rust: stable
       script:
+        - cargo clean
         - sh run_benches_stable_release.sh opt-level=1
         - cargo test -- --nocapture
 
     - name: "nightly + debug + -C opt-level = 1"
       rust: nightly
       script:
+        - cargo clean
         - sh run_benches_nightly_debug.sh opt-level=1
         - cargo test -- --nocapture
 
     - name: "nightly + release + -C opt-level = 1"
       rust: nightly
       script:
+        - cargo clean
         - sh run_benches_nightly_release.sh opt-level=1
         - cargo test -- --nocapture
 
@@ -67,24 +75,28 @@ matrix:
     - name: "stable + debug + -C opt-level = 2"
       rust: stable
       script:
+        - cargo clean
         - sh run_benches_stable_debug.sh opt-level=2
         - cargo test -- --nocapture
 
     - name: "stable + release + -C opt-level = 2"
       rust: stable
       script:
+        - cargo clean
         - sh run_benches_stable_release.sh opt-level=2
         - cargo test -- --nocapture
 
     - name: "nightly + debug + -C opt-level = 2"
       rust: nightly
       script:
+        - cargo clean
         - sh run_benches_nightly_debug.sh opt-level=2
         - cargo test -- --nocapture
 
     - name: "nightly + release + -C opt-level = 2"
       rust: nightly
       script:
+        - cargo clean
         - sh run_benches_nightly_release.sh opt-level=2
         - cargo test -- --nocapture
 
@@ -92,23 +104,27 @@ matrix:
     - name: "stable + debug + -C opt-level = 3"
       rust: stable
       script:
+        - cargo clean
         - sh run_benches_stable_debug.sh opt-level=3
         - cargo test -- --nocapture
 
     - name: "stable + release + -C opt-level = 3"
       rust: stable
       script:
+        - cargo clean
         - sh run_benches_stable_release.sh opt-level=3
         - cargo test -- --nocapture
 
     - name: "nightly + debug + -C opt-level = 3"
       rust: nightly
       script:
+        - cargo clean
         - sh run_benches_nightly_debug.sh opt-level=3
         - cargo test -- --nocapture
 
     - name: "nightly + release + -C opt-level = 3"
       rust: nightly
       script:
+        - cargo clean
         - sh run_benches_nightly_release.sh opt-level=3
         - cargo test -- --nocapture
