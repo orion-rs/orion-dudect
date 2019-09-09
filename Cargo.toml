@@ -5,13 +5,13 @@ authors = ["brycx <brycx@protonmail.com>"]
 edition = "2018"
 
 [dependencies]
-dudect-bencher = "0.4.0"
-rand = "0.6"
+dudect-bencher = "0.4.1"
+rand = "0.7"
 orion = { git = "https://github.com/brycx/orion/", branch = "master" }
-clap = "2.25"
+clap = "2.33"
 ctrlc = "3.1"
 regex = "1"
-rand_chacha = "0.1.1"
+rand_chacha = "0.2.1"
 
 [features]
 nightly = [ "orion/nightly" ]
