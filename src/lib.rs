@@ -2,7 +2,9 @@ use dudect_bencher::{BenchRng, Class};
 use rand::{Rng, RngCore};
 
 /// Number of testing samples to generate.
-pub const NUMBER_OF_SAMPLES: usize = 100_000_0;
+pub const NUMBER_OF_SAMPLES: usize = 1_000_000;
+/// Input format for dudect.
+pub type DudectInput = Vec<(Vec<u8>, Vec<u8>)>;  
 
 // Return a random input vector.
 fn rand_input_vector(len: usize, rng: &mut BenchRng) -> Vec<u8> {
@@ -15,8 +17,8 @@ fn rand_input_vector(len: usize, rng: &mut BenchRng) -> Vec<u8> {
 pub fn generate_input_classes(
     rng: &mut BenchRng,
     input_len: usize,
-) -> (Vec<(Vec<u8>, Vec<u8>)>, Vec<Class>) {
-    let mut inputs: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+) -> (DudectInput, Vec<Class>) {
+    let mut inputs: DudectInput = Vec::new();
     let mut classes = Vec::new();
 
     for _ in 0..NUMBER_OF_SAMPLES {
@@ -52,11 +54,15 @@ mod tests {
 
         for line in reader.lines().filter_map(|result| result.ok()) {
             // Match a bench max t output here
-            let re = Regex::new(r"(max t = )[+-]\d{0,5}.\d{0,5}").unwrap();
-            for cap in re.captures_iter(&line) {
-                let (_, tval) = &cap[0].split_at(8); // Splits before a "+" or "-"
-                                                     // For debugging
-                println!("Read: max t: {} from {} tests", tval, bench_result_name);
+            let re_name = Regex::new(r"(bench test_)[a-z,0-9,_]+").unwrap();
+            let re_result = Regex::new(r"(max t = )[+-]\d{0,5}.\d{0,5}").unwrap();
+            for (cap_name, cap_res) in re_name
+                .captures_iter(&line)
+                .zip(re_result.captures_iter(&line))
+            {
+                let (_, bench_name) = &cap_name[0].split_at(6); // Splits before a "bench "
+                let (_, tval) = &cap_res[0].split_at(8); // Splits before a "+" or "-"
+                println!("[{}] Read: max t: {}", bench_name, tval);
 
                 let parsed = &tval.parse::<f64>();
                 match parsed {
@@ -86,7 +92,5 @@ mod tests {
         };
     }
 
-    dudect_test_results!(dudect_secure_cmp, "secure_cmp");
-    dudect_test_results!(dudect_poly1305, "poly1305");
-    dudect_test_results!(dudect_newtype, "newtype");
+    dudect_test_results!(dudect_ct_benches, "ct_benches");
 }
