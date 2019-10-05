@@ -6,7 +6,7 @@ dist: trusty
 matrix:
   
   allow_failures:
-    - env: 
+    env: 
       - 'OPT-LEVEL=0'
       - 'debug'
   
