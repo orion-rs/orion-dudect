@@ -1,20 +1,22 @@
 language: rust
 sudo: required
 cache: cargo
-os:
-  - linux
-  - osx
+dist: trusty
 
 matrix:
   
   allow_failures:
-    - env: 'OPT-LEVEL=0'
+    - env: 
+      - 'OPT-LEVEL=0'
+      - 'debug'
   
   include:
     # -C opt-level = 0
     - name: "stable + debug + -C opt-level = 0"
       rust: stable
-      env: 'OPT-LEVEL=0'
+      env: 
+        - 'OPT-LEVEL=0'
+        - 'debug'
       script:
         - cargo clean
         - sh run_benches_stable_debug.sh opt-level=0
@@ -30,7 +32,9 @@ matrix:
 
     - name: "nightly + debug + -C opt-level = 0"
       rust: nightly
-      env: 'OPT-LEVEL=0'
+      env: 
+        - 'OPT-LEVEL=0'
+        - 'debug'
       script:
         - cargo clean
         - sh run_benches_nightly_debug.sh opt-level=0
@@ -47,6 +51,7 @@ matrix:
   # -C opt-level = 1
     - name: "stable + debug + -C opt-level = 1"
       rust: stable
+      env: 'debug'
       script:
         - cargo clean
         - sh run_benches_stable_debug.sh opt-level=1
@@ -61,6 +66,7 @@ matrix:
 
     - name: "nightly + debug + -C opt-level = 1"
       rust: nightly
+      env: 'debug'
       script:
         - cargo clean
         - sh run_benches_nightly_debug.sh opt-level=1
@@ -76,6 +82,7 @@ matrix:
   # -C opt-level = 2
     - name: "stable + debug + -C opt-level = 2"
       rust: stable
+      env: 'debug'
       script:
         - cargo clean
         - sh run_benches_stable_debug.sh opt-level=2
@@ -90,6 +97,7 @@ matrix:
 
     - name: "nightly + debug + -C opt-level = 2"
       rust: nightly
+      env: 'debug'
       script:
         - cargo clean
         - sh run_benches_nightly_debug.sh opt-level=2
@@ -105,6 +113,7 @@ matrix:
   # -C opt-level = 3
     - name: "stable + debug + -C opt-level = 3"
       rust: stable
+      env: 'debug'
       script:
         - cargo clean
         - sh run_benches_stable_debug.sh opt-level=3
@@ -119,6 +128,7 @@ matrix:
 
     - name: "nightly + debug + -C opt-level = 3"
       rust: nightly
+      env: 'debug'
       script:
         - cargo clean
         - sh run_benches_nightly_debug.sh opt-level=3
@@ -129,4 +139,53 @@ matrix:
       script:
         - cargo clean
         - sh run_benches_nightly_release.sh opt-level=3
+        - cargo test -- --nocapture
+
+    # OSX
+    - name: "OSX: stable + release + -C opt-level = 3"
+      os: osx
+      rust: stable
+      script:
+        - cargo clean
+        - sh run_benches_stable_release.sh opt-level=3
+        - cargo test -- --nocapture
+
+    - name: "OSX: nightly + release + -C opt-level = 3"
+      os: osx
+      rust: nightly
+      script:
+        - cargo clean
+        - sh run_benches_nightly_release.sh opt-level=3
+        - cargo test -- --nocapture
+
+    - name: "OSX: stable + release + -C opt-level = 2"
+      os: osx
+      rust: stable
+      script:
+        - cargo clean
+        - sh run_benches_stable_release.sh opt-level=2
+        - cargo test -- --nocapture
+
+    - name: "OSX: nightly + release + -C opt-level = 2"
+      os: osx
+      rust: nightly
+      script:
+        - cargo clean
+        - sh run_benches_nightly_release.sh opt-level=2
+        - cargo test -- --nocapture
+    
+    - name: "OSX: stable + release + -C opt-level = 1"
+      os: osx
+      rust: stable
+      script:
+        - cargo clean
+        - sh run_benches_stable_release.sh opt-level=1
+        - cargo test -- --nocapture
+
+    - name: "OSX: nightly + release + -C opt-level = 1"
+      os: osx
+      rust: nightly
+      script:
+        - cargo clean
+        - sh run_benches_nightly_release.sh opt-level=1
         - cargo test -- --nocapture
