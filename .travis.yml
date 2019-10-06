@@ -11,7 +11,7 @@ matrix:
   
   include:
     # -C opt-level = 0
-    - name: "[DEBUG] stable + nightly && -C opt-level = 0"
+    - name: "[DEBUG] stable + nightly + -C opt-level = 0"
       env: 'OPT-LEVEL=0'
       script:
         - sh run_benches_debug.sh opt-level=0 x86_64-unknown-linux-gnu
@@ -23,7 +23,7 @@ matrix:
         - sh run_benches_release.sh opt-level=0 x86_64-unknown-linux-gnu
 
   # -C opt-level = 1
-    - name: "[DEBUG] stable + nightly && -C opt-level = 1"
+    - name: "[DEBUG] stable + nightly + -C opt-level = 1"
       env: 'BUILD=debug'
       script:
         - sh run_benches_debug.sh opt-level=1 x86_64-unknown-linux-gnu
@@ -32,13 +32,13 @@ matrix:
       script:
         - sh run_benches_release.sh opt-level=1 x86_64-unknown-linux-gnu
     
-    - name: "[RELEASE] stable + nightly && -C opt-level = 1"
+    - name: "[RELEASE] stable + nightly + -C opt-level = 1"
       os: osx
       script:
         - sh run_benches_release.sh opt-level=1 x86_64-apple-darwin
 
   # -C opt-level = 2
-    - name: "[DEBUG] stable + nightly && -C opt-level = 2"
+    - name: "[DEBUG] stable + nightly + -C opt-level = 2"
       env: 'BUILD=debug'
       script:
         - sh run_benches_debug.sh opt-level=2 x86_64-unknown-linux-gnu
@@ -47,13 +47,13 @@ matrix:
       script:
         - sh run_benches_release.sh opt-level=2 x86_64-unknown-linux-gnu
     
-    - name: "[RELEASE] stable + nightly && -C opt-level = 2"
+    - name: "[RELEASE] stable + nightly + -C opt-level = 2"
       os: osx
       script:
         - sh run_benches_release.sh opt-level=2 x86_64-apple-darwin
 
   # -C opt-level = 3
-    - name: "[DEBUG] stable + nightly && -C opt-level = 3"
+    - name: "[DEBUG] stable + nightly + -C opt-level = 3"
       env: 'BUILD=debug'
       script:
         - sh run_benches_debug.sh opt-level=3 x86_64-unknown-linux-gnu
@@ -62,7 +62,7 @@ matrix:
       script:
         - sh run_benches_release.sh opt-level=3 x86_64-unknown-linux-gnu
     
-    - name: "[RELEASE] stable + nightly && -C opt-level = 3"
+    - name: "[RELEASE] stable + nightly + -C opt-level = 3"
       os: osx
       script:
         - sh run_benches_release.sh opt-level=3 x86_64-apple-darwin
