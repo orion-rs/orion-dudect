@@ -16,8 +16,9 @@ install:
   - rustup toolchain install nightly-%TARGET%
 
 test_script:
-  - sh run_benches_debug.sh opt-level=1 %TARGET%
-  - sh run_benches_stable_release.sh opt-level=2 %TARGET%
+  - sh run_benches_release.sh opt-level=1 %TARGET%
+  - sh run_benches_release.sh opt-level=2 %TARGET%
+  - sh run_benches_release.sh opt-level=3 %TARGET%
 
 cache:
   - C:\Users\appveyor\.cargo\registry
