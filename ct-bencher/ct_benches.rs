@@ -51,9 +51,22 @@ fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
     }
 }
 
+fn test_poly1305_verify(runner: &mut CtRunner, rng: &mut BenchRng) {
+    let (inputs, classes) = generate_input_classes(rng, POLY1305_KEYSIZE);
+
+    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+        // u will be used as SecretKey and v as message to be authenticated.
+        let sk = poly1305::OneTimeKey::from_slice(&u[..]).unwrap();
+        let expected = poly1305::poly1305(&sk, &v[..]).unwrap();
+        
+        runner.run_one(class, || poly1305::verify(&expected, &sk, &v[..]).is_ok());
+    }
+}
+
 ctbench_main!(
     test_newtype,
     test_newtype_slice,
     test_secure_cmp,
-    test_poly1305
+    test_poly1305,
+    test_poly1305_verify
 );
