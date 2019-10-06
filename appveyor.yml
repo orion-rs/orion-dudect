@@ -30,7 +30,7 @@ test_script:
       cargo test -- --nocapture &&
       cargo clean &&
       sh run_benches_stable_release.sh opt-level=3 &&
-      cargo test -- --nocapture &&
+      cargo test -- --nocapture
     )
   - if [%RUST_VERSION%]==[nightly]  (
       cargo clean &&
@@ -41,7 +41,7 @@ test_script:
       cargo test -- --nocapture &&
       cargo clean &&
       sh run_benches_nightly_release.sh opt-level=3 &&
-      cargo test -- --nocapture &&
+      cargo test -- --nocapture
     )
 
 cache:
