@@ -5,7 +5,7 @@ extern crate orion_dudect;
 extern crate rand;
 
 use dudect_bencher::{BenchRng, CtRunner};
-use orion::hazardous::mac::poly1305::{self, POLY1305_KEYSIZE};
+use orion::hazardous::mac::poly1305::{Poly1305, OneTimeKey, POLY1305_KEYSIZE};
 use orion::hazardous::stream::chacha20::{SecretKey, CHACHA_KEYSIZE};
 use orion::util::secure_cmp;
 use orion_dudect::generate_input_classes;
@@ -46,8 +46,8 @@ fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
 
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
         // u will be used as SecretKey and v as message to be authenticated.
-        let sk = poly1305::OneTimeKey::from_slice(&u[..]).unwrap();
-        runner.run_one(class, || poly1305::poly1305(&sk, &v[..]).unwrap());
+        let sk = OneTimeKey::from_slice(&u[..]).unwrap();
+        runner.run_one(class, || Poly1305::poly1305(&sk, &v[..]).unwrap());
     }
 }
 
@@ -56,10 +56,10 @@ fn test_poly1305_verify(runner: &mut CtRunner, rng: &mut BenchRng) {
 
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
         // u will be used as SecretKey and v as message to be authenticated.
-        let sk = poly1305::OneTimeKey::from_slice(&u[..]).unwrap();
-        let expected = poly1305::poly1305(&sk, &v[..]).unwrap();
+        let sk = OneTimeKey::from_slice(&u[..]).unwrap();
+        let expected = Poly1305::poly1305(&sk, &v[..]).unwrap();
         
-        runner.run_one(class, || poly1305::verify(&expected, &sk, &v[..]).is_ok());
+        runner.run_one(class, || Poly1305::verify(&expected, &sk, &v[..]).is_ok());
     }
 }
 
