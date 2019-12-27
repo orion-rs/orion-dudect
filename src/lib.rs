@@ -4,7 +4,7 @@ use rand::{Rng, RngCore};
 /// Number of testing samples to generate.
 pub const NUMBER_OF_SAMPLES: usize = 1_000_000;
 /// Input format for dudect.
-pub type DudectInput = Vec<(Vec<u8>, Vec<u8>)>;  
+pub type DudectInput = Vec<(Vec<u8>, Vec<u8>)>;
 
 // Return a random input vector.
 fn rand_input_vector(len: usize, rng: &mut BenchRng) -> Vec<u8> {
@@ -14,10 +14,7 @@ fn rand_input_vector(len: usize, rng: &mut BenchRng) -> Vec<u8> {
 }
 
 /// Generate dudect input classes.
-pub fn generate_input_classes(
-    rng: &mut BenchRng,
-    input_len: usize,
-) -> (DudectInput, Vec<Class>) {
+pub fn generate_input_classes(rng: &mut BenchRng, input_len: usize) -> (DudectInput, Vec<Class>) {
     let mut inputs: DudectInput = Vec::new();
     let mut classes = Vec::new();
 
