@@ -5,7 +5,7 @@ extern crate orion_dudect;
 extern crate rand;
 
 use dudect_bencher::{BenchRng, CtRunner};
-use orion::hazardous::mac::poly1305::{Poly1305, OneTimeKey, POLY1305_KEYSIZE};
+use orion::hazardous::mac::poly1305::{OneTimeKey, Poly1305, POLY1305_KEYSIZE};
 use orion::hazardous::stream::chacha20::{SecretKey, CHACHA_KEYSIZE};
 use orion::util::secure_cmp;
 use orion_dudect::generate_input_classes;
@@ -58,7 +58,7 @@ fn test_poly1305_verify(runner: &mut CtRunner, rng: &mut BenchRng) {
         // u will be used as SecretKey and v as message to be authenticated.
         let sk = OneTimeKey::from_slice(&u[..]).unwrap();
         let expected = Poly1305::poly1305(&sk, &v[..]).unwrap();
-        
+
         runner.run_one(class, || Poly1305::verify(&expected, &sk, &v[..]).is_ok());
     }
 }

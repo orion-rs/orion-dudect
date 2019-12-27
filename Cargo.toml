@@ -13,9 +13,6 @@ ctrlc = "3.1"
 regex = "1"
 rand_chacha = "0.2.1"
 
-[features]
-nightly = [ "orion/nightly" ]
-
 [[bin]]
 name = "ct_benches"
 path = "ct-bencher/ct_benches.rs"
