@@ -2,7 +2,7 @@ These are constant-time execution tests for [orion](https://github.com/brycx/ori
 
 Testing is done using [dudect-bencher](https://github.com/rozbb/dudect-bencher).
 
-### Status: ![Build Status](https://travis-ci.org/brycx/orion-dudect.svg?branch=master)
+### Status: ![Build Status](https://travis-ci.com/brycx/orion-dudect.svg?branch=master)
 
 
 ### Getting started
