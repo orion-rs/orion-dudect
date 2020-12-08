@@ -27,10 +27,10 @@ jobs:
           override: true
       
       - name: -C opt-level = 1
-      - run: sh run_benches_release.sh opt-level=1
+        run: sh run_benches_release.sh opt-level=1
 
       - name: -C opt-level = 2
-      - run: sh run_benches_release.sh opt-level=2
+        run: sh run_benches_release.sh opt-level=2
 
       - name: -C opt-level = 3
-      - run: sh run_benches_release.sh opt-level=3
+        run: sh run_benches_release.sh opt-level=3
