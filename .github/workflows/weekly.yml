@@ -1,5 +1,8 @@
 name: Weekly tests
 on:
+  push:
+    branches:
+      - master 
   schedule:
     - cron: '0 0 * * 0' # Midnight of each sunday
 
