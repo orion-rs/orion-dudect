@@ -1,4 +1,4 @@
-name: Weekly tests
+name: dudect
 on:
   push:
     branches:
