@@ -10,3 +10,5 @@ Cargo.lock
 **/*.rs.bk
 
 bench-results/*
+
+.idea
