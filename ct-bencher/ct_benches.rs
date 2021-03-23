@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate dudect_bencher;
+extern crate ct_codecs;
 extern crate orion;
 extern crate orion_dudect;
 extern crate rand;
-extern crate ct_codecs;
 
 use dudect_bencher::{BenchRng, CtRunner};
 use orion::hazardous::mac::poly1305::{OneTimeKey, Poly1305, POLY1305_KEYSIZE};
@@ -81,7 +81,9 @@ fn test_ct_base64_decode(runner: &mut CtRunner, rng: &mut BenchRng) {
     for (class, (u, _v)) in classes.into_iter().zip(inputs.into_iter()) {
         let encoded = Base64NoPadding::encode_to_string(&u[..]).unwrap();
 
-        runner.run_one(class, || Base64NoPadding::decode_to_vec(encoded.as_str(), None).unwrap());
+        runner.run_one(class, || {
+            Base64NoPadding::decode_to_vec(encoded.as_str(), None).unwrap()
+        });
     }
 }
 
