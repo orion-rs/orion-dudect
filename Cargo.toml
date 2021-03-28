@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 dudect-bencher = "0.4.1"
 rand = "0.7"
-orion = { git = "https://github.com/brycx/orion/", branch = "master" }
+orion = { git = "https://github.com/orion-rs/orion/", branch = "master" }
 ct-codecs = "1.1.1"
 clap = "2.33"
 ctrlc = "3.1"
