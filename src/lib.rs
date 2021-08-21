@@ -109,8 +109,8 @@ mod tests {
                 for measurement in max_t_measurements.iter() {
                     // max t must be in range of -4.5..4.5.
                     let custom_err = format!("dudect test found to break threshold: name: {}, t value: {}, seed: {:?}", measurement.0, measurement.1, measurement.2);
-                    assert!(measurement.1 <= 4.5f64, custom_err);
-                    assert!(measurement.1 >= -4.5f64, custom_err);
+                    assert!(measurement.1 <= 4.5f64, "{}", custom_err);
+                    assert!(measurement.1 >= -4.5f64, "{}", custom_err);
                 }
             }
         };
