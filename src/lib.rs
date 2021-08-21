@@ -19,13 +19,12 @@ pub fn generate_input_classes(rng: &mut BenchRng, input_len: usize) -> (DudectIn
     let mut classes = Vec::new();
 
     for _ in 0..NUMBER_OF_SAMPLES {
+        let v1 = rand_input_vector(input_len, rng);
         if rng.gen::<bool>() {
-            let v1 = rand_input_vector(input_len, rng);
             let v2 = v1.clone();
             inputs.push((v1, v2));
             classes.push(Class::Left);
         } else {
-            let v1 = rand_input_vector(input_len, rng);
             let v2 = vec![0u8; v1.len()];
             inputs.push((v1, v2));
             classes.push(Class::Right);
