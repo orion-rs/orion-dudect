@@ -10,7 +10,7 @@ jobs:
   tests:
     strategy:
       matrix:
-        rust:
+        toolchain:
           - stable
           - nightly
         os: 
