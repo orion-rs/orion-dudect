@@ -5,14 +5,18 @@ extern crate orion;
 extern crate orion_dudect;
 extern crate rand;
 
-use dudect_bencher::{BenchRng, CtRunner};
+use std::convert::TryFrom;
+
+use dudect_bencher::{BenchRng, Class, CtRunner};
+use orion::hazardous::ecc::x25519::key_agreement;
 use orion::hazardous::mac::poly1305::{OneTimeKey, Poly1305, POLY1305_KEYSIZE};
 use orion::hazardous::stream::chacha20::{SecretKey, CHACHA_KEYSIZE};
 use orion::pwhash::PWHASH_LENGTH;
 use orion::util::secure_cmp;
-use orion_dudect::generate_input_classes;
+use orion_dudect::{generate_input_classes, rand_input_vector, NUMBER_OF_SAMPLES};
 // `Base64NoPadding` is the padding used in orion::pwhash::PasswordHash
 use ct_codecs::{Base64NoPadding, Decoder, Encoder};
+use rand::Rng;
 
 // We only test one newtype that implements PartialEq, because they
 // all use the macro to implement it.
@@ -87,6 +91,50 @@ fn test_ct_base64_decode(runner: &mut CtRunner, rng: &mut BenchRng) {
     }
 }
 
+fn test_x25519_scalarmul_base(runner: &mut CtRunner, rng: &mut BenchRng) {
+    use orion::hazardous::ecc::x25519::{PrivateKey, PublicKey, PRIVATE_KEY_SIZE};
+    let mut inputs: Vec<Vec<u8>> = Vec::new();
+    let mut classes = Vec::new();
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
+
+        if rng.gen::<bool>() {
+            classes.push(Class::Left);
+        } else {
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
+        let sk = PrivateKey::from_slice(&k).unwrap_or(PrivateKey::generate());
+        runner.run_one(class, || PublicKey::try_from(&sk).unwrap());
+    }
+}
+
+fn test_x25519_scalarmul(runner: &mut CtRunner, rng: &mut BenchRng) {
+    use orion::hazardous::ecc::x25519::{PrivateKey, PublicKey, PRIVATE_KEY_SIZE};
+    let mut inputs: Vec<Vec<u8>> = Vec::new();
+    let mut classes = Vec::new();
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
+
+        if rng.gen::<bool>() {
+            classes.push(Class::Left);
+        } else {
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
+        let sk = PrivateKey::from_slice(&k).unwrap_or(PrivateKey::generate());
+        let pk_other = PublicKey::try_from(&PrivateKey::generate()).unwrap();
+
+        runner.run_one(class, || key_agreement(&sk, &pk_other).unwrap());
+    }
+}
+
 ctbench_main!(
     test_newtype,
     test_newtype_slice,
@@ -94,5 +142,7 @@ ctbench_main!(
     test_poly1305,
     test_poly1305_verify,
     test_ct_base64_encode,
-    test_ct_base64_decode
+    test_ct_base64_decode,
+    test_x25519_scalarmul_base,
+    test_x25519_scalarmul
 );

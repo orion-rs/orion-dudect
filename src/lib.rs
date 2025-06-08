@@ -7,7 +7,7 @@ pub const NUMBER_OF_SAMPLES: usize = 1_000_000;
 pub type DudectInput = Vec<(Vec<u8>, Vec<u8>)>;
 
 // Return a random input vector.
-fn rand_input_vector(len: usize, rng: &mut BenchRng) -> Vec<u8> {
+pub fn rand_input_vector(len: usize, rng: &mut BenchRng) -> Vec<u8> {
     let mut arr = vec![0u8; len];
     rng.fill_bytes(&mut arr);
     arr
