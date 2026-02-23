@@ -6,13 +6,13 @@ edition = "2018"
 
 [dependencies]
 dudect-bencher = "0.6"
-rand = "0.10"
+rand = "0.8"
 orion = { git = "https://github.com/orion-rs/orion/", branch = "master" }
 ct-codecs = "1.1.1"
 clap = "2"
 ctrlc = "3"
 regex = "1"
-rand_chacha = "0.10"
+rand_chacha = "0.3"
 
 [[bin]]
 name = "ct_benches"
