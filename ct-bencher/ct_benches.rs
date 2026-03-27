@@ -15,8 +15,8 @@ use orion::pwhash::PWHASH_LENGTH;
 use orion::util::secure_cmp;
 use orion_dudect::{generate_input_classes, rand_input_vector, NUMBER_OF_SAMPLES};
 // `Base64NoPadding` is the padding used in orion::pwhash::PasswordHash
+use crate::rand::RngExt;
 use ct_codecs::{Base64NoPadding, Decoder, Encoder};
-use rand::Rng;
 
 // We only test one newtype that implements PartialEq, because they
 // all use the macro to implement it.
@@ -99,7 +99,7 @@ fn test_x25519_scalarmul_base(runner: &mut CtRunner, rng: &mut BenchRng) {
     for _ in 0..NUMBER_OF_SAMPLES {
         inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
 
-        if rng.gen::<bool>() {
+        if rng.random::<bool>() {
             classes.push(Class::Left);
         } else {
             classes.push(Class::Right);
@@ -120,7 +120,7 @@ fn test_x25519_scalarmul(runner: &mut CtRunner, rng: &mut BenchRng) {
     for _ in 0..NUMBER_OF_SAMPLES {
         inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
 
-        if rng.gen::<bool>() {
+        if rng.random::<bool>() {
             classes.push(Class::Left);
         } else {
             classes.push(Class::Right);
@@ -174,9 +174,9 @@ fn test_mlkem_barrett_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
 
     for _ in 0..NUMBER_OF_SAMPLES {
         // "Given value < 2q return value mod q (in [0, n])."
-        inputs.push(rng.gen_range(0..(KYBER_Q * KYBER_Q)));
+        inputs.push(rng.random_range(0..(KYBER_Q * KYBER_Q)));
 
-        if rng.gen::<bool>() {
+        if rng.random::<bool>() {
             classes.push(Class::Left);
         } else {
             classes.push(Class::Right);
@@ -224,9 +224,9 @@ fn test_compress<const D: u8>(runner: &mut CtRunner, rng: &mut BenchRng) {
     let mut classes = Vec::new();
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        inputs.push(rng.gen_range(0..2u32.pow(D as u32)));
+        inputs.push(rng.random_range(0..2u32.pow(D as u32)));
 
-        if rng.gen::<bool>() {
+        if rng.random::<bool>() {
             classes.push(Class::Left);
         } else {
             classes.push(Class::Right);

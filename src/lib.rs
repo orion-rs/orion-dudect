@@ -1,5 +1,5 @@
 use dudect_bencher::{BenchRng, Class};
-use rand::{Rng, RngCore};
+use rand::{Rng, RngExt};
 
 /// Number of testing samples to generate.
 pub const NUMBER_OF_SAMPLES: usize = 1_000_000;
@@ -20,7 +20,7 @@ pub fn generate_input_classes(rng: &mut BenchRng, input_len: usize) -> (DudectIn
 
     for _ in 0..NUMBER_OF_SAMPLES {
         let v1 = rand_input_vector(input_len, rng);
-        if rng.gen::<bool>() {
+        if rng.random::<bool>() {
             let v2 = v1.clone();
             inputs.push((v1, v2));
             classes.push(Class::Left);
