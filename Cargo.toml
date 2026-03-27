@@ -2,7 +2,7 @@
 name = "orion-dudect"
 version = "0.1.0"
 authors = ["brycx <brycx@protonmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 dudect-bencher = "0.7"
