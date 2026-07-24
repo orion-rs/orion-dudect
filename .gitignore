@@ -12,3 +12,5 @@ Cargo.lock
 bench-results/*
 
 .idea
+
+.DS_Store
