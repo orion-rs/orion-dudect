@@ -9,11 +9,11 @@ use std::convert::TryFrom;
 
 use dudect_bencher::{BenchRng, Class, CtRunner};
 use orion::hazardous::ecc::x25519::key_agreement;
-use orion::hazardous::mac::poly1305::{OneTimeKey, Poly1305, POLY1305_KEYSIZE};
-use orion::hazardous::stream::chacha20::{SecretKey, CHACHA_KEYSIZE};
+use orion::hazardous::mac::poly1305::{OneTimeKey, POLY1305_KEYSIZE, Poly1305};
+use orion::hazardous::stream::chacha20::{CHACHA_KEYSIZE, SecretKey};
 use orion::pwhash::PWHASH_LENGTH;
 use orion::util::secure_cmp;
-use orion_dudect::{generate_input_classes, rand_input_vector, NUMBER_OF_SAMPLES};
+use orion_dudect::{NUMBER_OF_SAMPLES, generate_input_classes, rand_input_vector};
 // `Base64NoPadding` is the padding used in orion::pwhash::PasswordHash
 use crate::rand::RngExt;
 use ct_codecs::{Base64NoPadding, Decoder, Encoder};
@@ -24,8 +24,8 @@ fn test_newtype(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, CHACHA_KEYSIZE);
 
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk0 = SecretKey::from_slice(&u[..]).unwrap();
-        let sk1 = SecretKey::from_slice(&v[..]).unwrap();
+        let sk0 = SecretKey::try_from(&u[..]).unwrap();
+        let sk1 = SecretKey::try_from(&v[..]).unwrap();
         runner.run_one(class, || sk0 == sk1);
     }
 }
@@ -36,7 +36,7 @@ fn test_newtype_slice(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, CHACHA_KEYSIZE);
 
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk0 = SecretKey::from_slice(&u[..]).unwrap();
+        let sk0 = SecretKey::try_from(&u[..]).unwrap();
         runner.run_one(class, || sk0 == &v[..]);
     }
 }
@@ -54,7 +54,7 @@ fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
 
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
         // u will be used as SecretKey and v as message to be authenticated.
-        let sk = OneTimeKey::from_slice(&u[..]).unwrap();
+        let sk = OneTimeKey::try_from(&u[..]).unwrap();
         runner.run_one(class, || Poly1305::poly1305(&sk, &v[..]).unwrap());
     }
 }
@@ -64,7 +64,7 @@ fn test_poly1305_verify(runner: &mut CtRunner, rng: &mut BenchRng) {
 
     for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
         // u will be used as SecretKey and v as message to be authenticated.
-        let sk = OneTimeKey::from_slice(&u[..]).unwrap();
+        let sk = OneTimeKey::try_from(&u[..]).unwrap();
         let expected = Poly1305::poly1305(&sk, &v[..]).unwrap();
 
         runner.run_one(class, || Poly1305::verify(&expected, &sk, &v[..]).is_ok());
@@ -92,7 +92,7 @@ fn test_ct_base64_decode(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_x25519_scalarmul_base(runner: &mut CtRunner, rng: &mut BenchRng) {
-    use orion::hazardous::ecc::x25519::{PrivateKey, PublicKey, PRIVATE_KEY_SIZE};
+    use orion::hazardous::ecc::x25519::{PRIVATE_KEY_SIZE, PrivateKey, PublicKey};
     let mut inputs: Vec<Vec<u8>> = Vec::new();
     let mut classes = Vec::new();
 
@@ -107,13 +107,13 @@ fn test_x25519_scalarmul_base(runner: &mut CtRunner, rng: &mut BenchRng) {
     }
 
     for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk = PrivateKey::from_slice(&k).unwrap_or(PrivateKey::generate());
+        let sk = PrivateKey::try_from(&k).unwrap_or(PrivateKey::generate().unwrap());
         runner.run_one(class, || PublicKey::try_from(&sk).unwrap());
     }
 }
 
 fn test_x25519_scalarmul(runner: &mut CtRunner, rng: &mut BenchRng) {
-    use orion::hazardous::ecc::x25519::{PrivateKey, PublicKey, PRIVATE_KEY_SIZE};
+    use orion::hazardous::ecc::x25519::{PRIVATE_KEY_SIZE, PrivateKey, PublicKey};
     let mut inputs: Vec<Vec<u8>> = Vec::new();
     let mut classes = Vec::new();
 
@@ -128,8 +128,8 @@ fn test_x25519_scalarmul(runner: &mut CtRunner, rng: &mut BenchRng) {
     }
 
     for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk = PrivateKey::from_slice(&k).unwrap_or(PrivateKey::generate());
-        let pk_other = PublicKey::try_from(&PrivateKey::generate()).unwrap();
+        let sk = PrivateKey::try_from(&k).unwrap_or(PrivateKey::generate().unwrap());
+        let pk_other = PublicKey::try_from(&PrivateKey::generate().unwrap()).unwrap();
 
         runner.run_one(class, || key_agreement(&sk, &pk_other).unwrap());
     }
