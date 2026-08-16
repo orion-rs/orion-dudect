@@ -23,7 +23,7 @@ use ct_codecs::{Base64NoPadding, Decoder, Encoder};
 fn test_newtype(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, CHACHA_KEYSIZE);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
         let sk0 = SecretKey::try_from(&u[..]).unwrap();
         let sk1 = SecretKey::try_from(&v[..]).unwrap();
         runner.run_one(class, || sk0 == sk1);
@@ -35,16 +35,16 @@ fn test_newtype(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_newtype_slice(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, CHACHA_KEYSIZE);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
         let sk0 = SecretKey::try_from(&u[..]).unwrap();
-        runner.run_one(class, || sk0 == &v[..]);
+        runner.run_one(class, || sk0 == v[..]);
     }
 }
 
 fn test_secure_cmp(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, 32);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
         runner.run_one(class, || secure_cmp(&u[..], &v[..]).is_ok());
     }
 }
@@ -52,7 +52,7 @@ fn test_secure_cmp(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, POLY1305_KEYSIZE);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
         // u will be used as SecretKey and v as message to be authenticated.
         let sk = OneTimeKey::try_from(&u[..]).unwrap();
         runner.run_one(class, || Poly1305::poly1305(&sk, &v[..]).unwrap());
@@ -62,7 +62,7 @@ fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_poly1305_verify(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, POLY1305_KEYSIZE);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
         // u will be used as SecretKey and v as message to be authenticated.
         let sk = OneTimeKey::try_from(&u[..]).unwrap();
         let expected = Poly1305::poly1305(&sk, &v[..]).unwrap();
@@ -74,7 +74,7 @@ fn test_poly1305_verify(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_ct_base64_encode(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, PWHASH_LENGTH);
 
-    for (class, (u, _v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, _v)) in classes.into_iter().zip(inputs) {
         runner.run_one(class, || Base64NoPadding::encode_to_string(&u[..]).unwrap());
     }
 }
@@ -82,7 +82,7 @@ fn test_ct_base64_encode(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_ct_base64_decode(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, PWHASH_LENGTH);
 
-    for (class, (u, _v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, _v)) in classes.into_iter().zip(inputs) {
         let encoded = Base64NoPadding::encode_to_string(&u[..]).unwrap();
 
         runner.run_one(class, || {
@@ -97,17 +97,17 @@ fn test_x25519_scalarmul_base(runner: &mut CtRunner, rng: &mut BenchRng) {
     let mut classes = Vec::new();
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
-
         if rng.random::<bool>() {
+            inputs.push(vec![0u8; PRIVATE_KEY_SIZE]);
             classes.push(Class::Left);
         } else {
+            inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
             classes.push(Class::Right);
         }
     }
 
-    for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk = PrivateKey::try_from(&k).unwrap_or(PrivateKey::generate().unwrap());
+    for (class, k) in classes.into_iter().zip(inputs) {
+        let sk = PrivateKey::try_from(&k).unwrap();
         runner.run_one(class, || PublicKey::try_from(&sk).unwrap());
     }
 }
@@ -118,19 +118,19 @@ fn test_x25519_scalarmul(runner: &mut CtRunner, rng: &mut BenchRng) {
     let mut classes = Vec::new();
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
-
         if rng.random::<bool>() {
+            inputs.push(vec![0u8; PRIVATE_KEY_SIZE]);
             classes.push(Class::Left);
         } else {
+            inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
             classes.push(Class::Right);
         }
     }
 
-    for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk = PrivateKey::try_from(&k).unwrap_or(PrivateKey::generate().unwrap());
-        let pk_other = PublicKey::try_from(&PrivateKey::generate().unwrap()).unwrap();
+    let pk_other = PublicKey::try_from(&PrivateKey::generate().unwrap()).unwrap();
 
+    for (class, k) in classes.into_iter().zip(inputs) {
+        let sk = PrivateKey::try_from(&k).unwrap();
         runner.run_one(class, || key_agreement(&sk, &pk_other).unwrap());
     }
 }
@@ -173,18 +173,18 @@ fn test_mlkem_barrett_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
     let mut classes = Vec::new();
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        // "Given value < 2q return value mod q (in [0, n])."
-        inputs.push(rng.random_range(0..(KYBER_Q * KYBER_Q)));
-
         if rng.random::<bool>() {
+            inputs.push((KYBER_Q * 2) - 1);
             classes.push(Class::Left);
         } else {
+            // "Given value < 2q return value mod q (in [0, n])."
+            inputs.push(rng.random_range(0..(KYBER_Q * KYBER_Q)));
             classes.push(Class::Right);
         }
     }
 
-    for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
-        runner.run_one(class, || barrett_reduce(k));
+    for (class, k) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || barrett_reduce(*k));
     }
 }
 
@@ -224,17 +224,17 @@ fn test_compress<const D: u8>(runner: &mut CtRunner, rng: &mut BenchRng) {
     let mut classes = Vec::new();
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        inputs.push(rng.random_range(0..2u32.pow(D as u32)));
-
         if rng.random::<bool>() {
+            inputs.push(KYBER_Q - 1);
             classes.push(Class::Left);
         } else {
+            inputs.push(rng.random_range(0..2u32.pow(D as u32)));
             classes.push(Class::Right);
         }
     }
 
-    for (class, x) in classes.into_iter().zip(inputs.into_iter()) {
-        runner.run_one(class, || compress(decompress(x, D), D));
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || compress(decompress(*x, D), D));
     }
 }
 
