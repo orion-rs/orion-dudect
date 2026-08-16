@@ -8,6 +8,7 @@ extern crate rand;
 use std::convert::TryFrom;
 
 use dudect_bencher::{BenchRng, Class, CtRunner};
+use orion::KP;
 use orion::hazardous::ecc::x25519::key_agreement;
 use orion::hazardous::mac::poly1305::{OneTimeKey, POLY1305_KEYSIZE, Poly1305};
 use orion::hazardous::stream::chacha20::{CHACHA_KEYSIZE, SecretKey};
@@ -17,6 +18,11 @@ use orion_dudect::{NUMBER_OF_SAMPLES, generate_input_classes, rand_input_vector}
 // `Base64NoPadding` is the padding used in orion::pwhash::PasswordHash
 use crate::rand::RngExt;
 use ct_codecs::{Base64NoPadding, Decoder, Encoder};
+
+use orion::hazardous::dsa::{
+    FieldElement, MlDsa44, MlDsa65, MlDsa87, MlDsaParameters, Standard, mldsa44, mldsa65, mldsa87,
+    montgomery_reduce,
+};
 
 // We only test one newtype that implements PartialEq, because they
 // all use the macro to implement it.
@@ -262,6 +268,240 @@ fn test_compress_d11(runner: &mut CtRunner, rng: &mut BenchRng) {
     test_compress::<11u8>(runner, rng);
 }
 
+fn test_sk_decode_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
+    let mut inputs: Vec<Vec<u8>> = Vec::new();
+    let mut classes = Vec::new();
+
+    let mut seed = [0u8; 32];
+    rng.fill(&mut seed);
+    let fixed = mldsa44::KeyPair::new(seed.into())
+        .unwrap()
+        .private()
+        .unprotected_as_ref()
+        .to_vec();
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(fixed.clone());
+            classes.push(Class::Left);
+        } else {
+            rng.fill(&mut seed);
+            inputs.push(
+                mldsa44::KeyPair::new(seed.into())
+                    .unwrap()
+                    .private()
+                    .unprotected_as_ref()
+                    .to_vec(),
+            );
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || {
+            MlDsa44::sk_decode::<{ MlDsa44::DIM_K }, { MlDsa44::DIM_L }>(x).unwrap()
+        });
+    }
+}
+
+fn test_sk_decode_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
+    let mut inputs: Vec<Vec<u8>> = Vec::new();
+    let mut classes = Vec::new();
+
+    let mut seed = [0u8; 32];
+    rng.fill(&mut seed);
+    let fixed = mldsa65::KeyPair::new(seed.into())
+        .unwrap()
+        .private()
+        .unprotected_as_ref()
+        .to_vec();
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(fixed.clone());
+            classes.push(Class::Left);
+        } else {
+            rng.fill(&mut seed);
+            inputs.push(
+                mldsa65::KeyPair::new(seed.into())
+                    .unwrap()
+                    .private()
+                    .unprotected_as_ref()
+                    .to_vec(),
+            );
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || {
+            MlDsa65::sk_decode::<{ MlDsa65::DIM_K }, { MlDsa65::DIM_L }>(x).unwrap()
+        });
+    }
+}
+
+fn test_sk_decode_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
+    let mut inputs: Vec<Vec<u8>> = Vec::new();
+    let mut classes = Vec::new();
+
+    let mut seed = [0u8; 32];
+    rng.fill(&mut seed);
+    let fixed = mldsa87::KeyPair::new(seed.into())
+        .unwrap()
+        .private()
+        .unprotected_as_ref()
+        .to_vec();
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(fixed.clone());
+            classes.push(Class::Left);
+        } else {
+            rng.fill(&mut seed);
+            inputs.push(
+                mldsa87::KeyPair::new(seed.into())
+                    .unwrap()
+                    .private()
+                    .unprotected_as_ref()
+                    .to_vec(),
+            );
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || {
+            MlDsa87::sk_decode::<{ MlDsa87::DIM_K }, { MlDsa87::DIM_L }>(x).unwrap()
+        });
+    }
+}
+
+fn test_power2round<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
+    const DILITHIUM_Q: u32 = 8380417;
+
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::new();
+    let mut classes = Vec::new();
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(FieldElement::<Standard>::new(DILITHIUM_Q - 1));
+            classes.push(Class::Left);
+        } else {
+            inputs.push(FieldElement::<Standard>::new(
+                rng.random_range(0..DILITHIUM_Q),
+            ));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || x.power2round::<P>());
+    }
+}
+
+fn test_power2round_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_power2round::<MlDsa44>(runner, rng);
+}
+
+fn test_power2round_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_power2round::<MlDsa65>(runner, rng);
+}
+
+fn test_power2round_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_power2round::<MlDsa87>(runner, rng);
+}
+
+fn test_montgomery_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
+    const DILITHIUM_Q: u32 = 8380417;
+
+    let mut inputs: Vec<u64> = Vec::new();
+    let mut classes = Vec::new();
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(0);
+            classes.push(Class::Left);
+        } else {
+            inputs.push(rng.random_range(0..=(DILITHIUM_Q as u64 - 1) * 2));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || montgomery_reduce(*x));
+    }
+}
+
+fn test_decompose<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
+    const DILITHIUM_Q: u32 = 8380417;
+
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::new();
+    let mut classes = Vec::new();
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(FieldElement::<Standard>::new(DILITHIUM_Q - 1));
+            classes.push(Class::Left);
+        } else {
+            inputs.push(FieldElement::<Standard>::new(
+                rng.random_range(0..DILITHIUM_Q),
+            ));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || x.decompose::<P>());
+    }
+}
+
+fn test_decompose_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_decompose::<MlDsa44>(runner, rng);
+}
+
+fn test_decompose_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_decompose::<MlDsa65>(runner, rng);
+}
+
+fn test_decompose_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_decompose::<MlDsa87>(runner, rng);
+}
+
+fn test_is_outside_bound<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
+    const DILITHIUM_Q: u32 = 8380417;
+
+    let mut inputs: Vec<u32> = Vec::new();
+    let mut classes = Vec::new();
+
+    let fe = FieldElement::<Standard>::new(DILITHIUM_Q - 1);
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(P::ETA as u32 + 1);
+            classes.push(Class::Left);
+        } else {
+            inputs.push(rng.random_range(..P::ETA as u32 + 1));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || fe.is_outside_bound(*x));
+    }
+}
+
+fn test_is_outside_bound_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_is_outside_bound::<MlDsa44>(runner, rng);
+}
+
+fn test_is_outside_bound_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_is_outside_bound::<MlDsa65>(runner, rng);
+}
+
+fn test_is_outside_bound_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_is_outside_bound::<MlDsa87>(runner, rng);
+}
+
 ctbench_main!(
     test_newtype,
     test_newtype_slice,
@@ -278,5 +518,18 @@ ctbench_main!(
     test_compress_d5,
     test_compress_d6,
     test_compress_d10,
-    test_compress_d11
+    test_compress_d11,
+    test_sk_decode_mldsa44,
+    test_sk_decode_mldsa65,
+    test_sk_decode_mldsa87,
+    test_power2round_mldsa44,
+    test_power2round_mldsa65,
+    test_power2round_mldsa87,
+    test_montgomery_reduce,
+    test_decompose_mldsa44,
+    test_decompose_mldsa65,
+    test_decompose_mldsa87,
+    test_is_outside_bound_mldsa44,
+    test_is_outside_bound_mldsa65,
+    test_is_outside_bound_mldsa87
 );
