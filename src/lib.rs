@@ -15,8 +15,8 @@ pub fn rand_input_vector(len: usize, rng: &mut BenchRng) -> Vec<u8> {
 
 /// Generate dudect input classes.
 pub fn generate_input_classes(rng: &mut BenchRng, input_len: usize) -> (DudectInput, Vec<Class>) {
-    let mut inputs: DudectInput = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: DudectInput = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         let v1 = rand_input_vector(input_len, rng);

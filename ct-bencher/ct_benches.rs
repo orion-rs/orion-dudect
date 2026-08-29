@@ -100,8 +100,8 @@ fn test_ct_base64_decode(runner: &mut CtRunner, rng: &mut BenchRng) {
 
 fn test_x25519_scalarmul_base(runner: &mut CtRunner, rng: &mut BenchRng) {
     use orion::hazardous::ecc::x25519::{PRIVATE_KEY_SIZE, PrivateKey, PublicKey};
-    let mut inputs: Vec<Vec<u8>> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<Vec<u8>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -121,8 +121,8 @@ fn test_x25519_scalarmul_base(runner: &mut CtRunner, rng: &mut BenchRng) {
 
 fn test_x25519_scalarmul(runner: &mut CtRunner, rng: &mut BenchRng) {
     use orion::hazardous::ecc::x25519::{PRIVATE_KEY_SIZE, PrivateKey, PublicKey};
-    let mut inputs: Vec<Vec<u8>> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<Vec<u8>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -145,8 +145,8 @@ fn test_x25519_scalarmul(runner: &mut CtRunner, rng: &mut BenchRng) {
 const KYBER_Q: u32 = 3329;
 
 fn test_mlkem_barrett_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<u32> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<u32> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -165,8 +165,8 @@ fn test_mlkem_barrett_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_compress<const D: u8>(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<MlKemFieldElement> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<MlKemFieldElement> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -210,8 +210,8 @@ fn test_compress_d11(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_sk_decode_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<mldsa44::Seed> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<mldsa44::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
@@ -244,8 +244,8 @@ fn test_sk_decode_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_sk_decode_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<mldsa65::Seed> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<mldsa65::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
@@ -278,8 +278,8 @@ fn test_sk_decode_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_sk_decode_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<mldsa87::Seed> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<mldsa87::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
@@ -314,8 +314,8 @@ fn test_sk_decode_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_power2round<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
     const DILITHIUM_Q: u32 = 8380417;
 
-    let mut inputs: Vec<FieldElement<Standard>> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -349,8 +349,8 @@ fn test_power2round_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_montgomery_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
     const DILITHIUM_Q: u32 = 8380417;
 
-    let mut inputs: Vec<u64> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<u64> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -370,8 +370,8 @@ fn test_montgomery_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_decompose<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
     const DILITHIUM_Q: u32 = 8380417;
 
-    let mut inputs: Vec<FieldElement<Standard>> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -405,8 +405,8 @@ fn test_decompose_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_is_outside_bound<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
     const DILITHIUM_Q: u32 = 8380417;
 
-    let mut inputs: Vec<FieldElement<Standard>> = Vec::new();
-    let mut classes: Vec<Class> = Vec::new();
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes: Vec<Class> = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     // The `bound` is a public parameter that depends on the ML-DSA
     // parameterset. So that has to stay fixed, not the value of the
