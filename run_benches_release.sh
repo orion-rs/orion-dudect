@@ -1,5 +1,3 @@
-set -euo pipefail
-
 # stable
 cargo clean;
 mkdir -p bench-results;
