@@ -105,15 +105,16 @@ mod tests {
             #[test]
             fn $test_name() {
                 let max_t_measurements = read_bench_out($bench_to_read);
-                for measurement in max_t_measurements.iter() {
-                    // max t must be in range of -4.5..4.5.
-                    let custom_err = format!(
-                        "dudect test found to break threshold: name: {}, t value: {}, seed: {:?}",
-                        measurement.0, measurement.1, measurement.2
-                    );
-                    assert!(measurement.1 <= 4.5f64, "{}", custom_err);
-                    assert!(measurement.1 >= -4.5f64, "{}", custom_err);
-                }
+                // max t must be in range of -4.5..4.5.
+                let failures: Vec<_> = max_t_measurements
+                    .iter()
+                    .filter(|m| m.1.abs() > 4.5)
+                    .collect();
+                assert!(
+                    failures.is_empty(),
+                    "dudect test found to break threshold: {:?}",
+                    &failures
+                );
             }
         };
     }
