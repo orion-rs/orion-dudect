@@ -411,23 +411,28 @@ fn test_decompose_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_is_outside_bound<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
     const DILITHIUM_Q: u32 = 8380417;
 
-    let mut inputs: Vec<u32> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::new();
+    let mut classes: Vec<Class> = Vec::new();
 
-    let fe = FieldElement::<Standard>::new(DILITHIUM_Q - 1);
+    // The `bound` is a public parameter that depends on the ML-DSA
+    // parameterset. So that has to stay fixed, not the value of the
+    // field element.
+    let bound = P::ETA as u32 + 1;
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
-            inputs.push(P::ETA as u32 + 1);
+            inputs.push(FieldElement::<Standard>::new(DILITHIUM_Q - 1));
             classes.push(Class::Left);
         } else {
-            inputs.push(rng.random_range(..P::ETA as u32 + 1));
+            inputs.push(FieldElement::<Standard>::new(
+                rng.random_range(0..DILITHIUM_Q),
+            ));
             classes.push(Class::Right);
         }
     }
 
     for (class, x) in classes.into_iter().zip(inputs.iter()) {
-        runner.run_one(class, || fe.is_outside_bound(*x));
+        runner.run_one(class, || x.is_outside_bound(bound));
     }
 }
 
