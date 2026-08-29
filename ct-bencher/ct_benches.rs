@@ -210,14 +210,16 @@ fn test_compress_d11(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_sk_decode_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<mldsa44::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES);
-    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    // These run a lot more processing so variations should show earlier than, e.g,
+    // simple PartialEq.
+    let mut inputs: Vec<mldsa44::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
     let fixed = mldsa44::Seed::from(seed);
 
-    for _ in 0..NUMBER_OF_SAMPLES {
+    for _ in 0..NUMBER_OF_SAMPLES / 4 {
         if rng.random::<bool>() {
             inputs.push(fixed.clone());
             classes.push(Class::Left);
@@ -244,14 +246,14 @@ fn test_sk_decode_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_sk_decode_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<mldsa65::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES);
-    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut inputs: Vec<mldsa65::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
     let fixed = mldsa65::Seed::from(seed);
 
-    for _ in 0..NUMBER_OF_SAMPLES {
+    for _ in 0..NUMBER_OF_SAMPLES / 4 {
         if rng.random::<bool>() {
             inputs.push(fixed.clone());
             classes.push(Class::Left);
@@ -278,14 +280,14 @@ fn test_sk_decode_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_sk_decode_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<mldsa87::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES);
-    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut inputs: Vec<mldsa87::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
     let fixed = mldsa87::Seed::from(seed);
 
-    for _ in 0..NUMBER_OF_SAMPLES {
+    for _ in 0..NUMBER_OF_SAMPLES / 4 {
         if rng.random::<bool>() {
             inputs.push(fixed.clone());
             classes.push(Class::Left);
