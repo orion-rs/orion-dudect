@@ -210,16 +210,12 @@ fn test_compress_d11(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_sk_decode_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<Vec<u8>> = Vec::new();
+    let mut inputs: Vec<mldsa44::Seed> = Vec::new();
     let mut classes = Vec::new();
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
-    let fixed = mldsa44::KeyPair::new(seed.into())
-        .unwrap()
-        .private()
-        .unprotected_as_ref()
-        .to_vec();
+    let fixed = mldsa44::Seed::from(seed);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -227,35 +223,33 @@ fn test_sk_decode_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
             classes.push(Class::Left);
         } else {
             rng.fill(&mut seed);
-            inputs.push(
-                mldsa44::KeyPair::new(seed.into())
-                    .unwrap()
-                    .private()
-                    .unprotected_as_ref()
-                    .to_vec(),
-            );
+            inputs.push(mldsa44::Seed::from(seed));
             classes.push(Class::Right);
         }
     }
 
-    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+    for (class, seed) in classes.into_iter().zip(inputs.iter()) {
+        // Expand KeyPair here, so we don't allocate multiple GiB of memomry for these tests!
+        // As long as it's not within runner.run_one() loop, should not be part of timing measurements.
+        let sk = mldsa44::KeyPair::try_from(seed)
+            .unwrap()
+            .private()
+            .unprotected_as_ref()
+            .to_vec();
+
         runner.run_one(class, || {
-            MlDsa44::sk_decode::<{ MlDsa44::DIM_K }, { MlDsa44::DIM_L }>(x).unwrap()
+            MlDsa44::sk_decode::<{ MlDsa44::DIM_K }, { MlDsa44::DIM_L }>(&sk).unwrap()
         });
     }
 }
 
 fn test_sk_decode_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<Vec<u8>> = Vec::new();
+    let mut inputs: Vec<mldsa65::Seed> = Vec::new();
     let mut classes = Vec::new();
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
-    let fixed = mldsa65::KeyPair::new(seed.into())
-        .unwrap()
-        .private()
-        .unprotected_as_ref()
-        .to_vec();
+    let fixed = mldsa65::Seed::from(seed);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -263,35 +257,33 @@ fn test_sk_decode_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
             classes.push(Class::Left);
         } else {
             rng.fill(&mut seed);
-            inputs.push(
-                mldsa65::KeyPair::new(seed.into())
-                    .unwrap()
-                    .private()
-                    .unprotected_as_ref()
-                    .to_vec(),
-            );
+            inputs.push(mldsa65::Seed::from(seed));
             classes.push(Class::Right);
         }
     }
 
-    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+    for (class, seed) in classes.into_iter().zip(inputs.iter()) {
+        // Expand KeyPair here, so we don't allocate multiple GiB of memomry for these tests!
+        // As long as it's not within runner.run_one() loop, should not be part of timing measurements.
+        let sk = mldsa65::KeyPair::try_from(seed)
+            .unwrap()
+            .private()
+            .unprotected_as_ref()
+            .to_vec();
+
         runner.run_one(class, || {
-            MlDsa65::sk_decode::<{ MlDsa65::DIM_K }, { MlDsa65::DIM_L }>(x).unwrap()
+            MlDsa65::sk_decode::<{ MlDsa65::DIM_K }, { MlDsa65::DIM_L }>(&sk).unwrap()
         });
     }
 }
 
 fn test_sk_decode_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<Vec<u8>> = Vec::new();
+    let mut inputs: Vec<mldsa87::Seed> = Vec::new();
     let mut classes = Vec::new();
 
     let mut seed = [0u8; 32];
     rng.fill(&mut seed);
-    let fixed = mldsa87::KeyPair::new(seed.into())
-        .unwrap()
-        .private()
-        .unprotected_as_ref()
-        .to_vec();
+    let fixed = mldsa87::Seed::from(seed);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         if rng.random::<bool>() {
@@ -299,20 +291,22 @@ fn test_sk_decode_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
             classes.push(Class::Left);
         } else {
             rng.fill(&mut seed);
-            inputs.push(
-                mldsa87::KeyPair::new(seed.into())
-                    .unwrap()
-                    .private()
-                    .unprotected_as_ref()
-                    .to_vec(),
-            );
+            inputs.push(mldsa87::Seed::from(seed));
             classes.push(Class::Right);
         }
     }
 
-    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+    for (class, seed) in classes.into_iter().zip(inputs.iter()) {
+        // Expand KeyPair here, so we don't allocate multiple GiB of memomry for these tests!
+        // As long as it's not within runner.run_one() loop, should not be part of timing measurements.
+        let sk = mldsa87::KeyPair::try_from(seed)
+            .unwrap()
+            .private()
+            .unprotected_as_ref()
+            .to_vec();
+
         runner.run_one(class, || {
-            MlDsa87::sk_decode::<{ MlDsa87::DIM_K }, { MlDsa87::DIM_L }>(x).unwrap()
+            MlDsa87::sk_decode::<{ MlDsa87::DIM_K }, { MlDsa87::DIM_L }>(&sk).unwrap()
         });
     }
 }
