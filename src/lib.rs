@@ -55,8 +55,8 @@ mod tests {
         let mut all_seed_pairs: Vec<NameAndSeed> = Vec::new();
         let mut all_tval_pairs: Vec<NameAndTValue> = Vec::new();
 
-        let re_seed = Regex::new(r"(seeded with )[a-z,0-9,_]+").unwrap();
-        let re_result = Regex::new(r"(max t = )[+-]\d{0,5}.\d{0,5}").unwrap();
+        let re_seed = Regex::new(r"(seeded with )[a-z,0-9]+").unwrap();
+        let re_result = Regex::new(r"(max t = )[+-]\d+.\d+").unwrap();
         let re_name = Regex::new(r"(bench test_)[a-z,0-9,_]+").unwrap();
 
         for line in reader.lines().map_while(Result::ok) {
