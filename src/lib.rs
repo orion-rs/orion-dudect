@@ -105,6 +105,11 @@ mod tests {
             #[test]
             fn $test_name() {
                 let max_t_measurements = read_bench_out($bench_to_read);
+                assert!(
+                    !max_t_measurements.is_empty(),
+                    "dudect bencher parsed no results at all!"
+                );
+
                 // max t must be in range of -4.5..4.5.
                 let failures: Vec<_> = max_t_measurements
                     .iter()
