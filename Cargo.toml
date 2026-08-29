@@ -2,12 +2,12 @@
 name = "orion-dudect"
 version = "0.1.0"
 authors = ["brycx <brycx@protonmail.com>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 dudect-bencher = "0.7"
 rand = "0.10"
-orion = { git = "https://github.com/orion-rs/orion/", branch = "master" }
+orion = { git = "https://github.com/orion-rs/orion/", branch = "master", features = ["ct-test"]}
 ct-codecs = "1.1.1"
 clap = "2"
 ctrlc = "3"

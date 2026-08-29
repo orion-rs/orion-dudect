@@ -8,24 +8,31 @@ extern crate rand;
 use std::convert::TryFrom;
 
 use dudect_bencher::{BenchRng, Class, CtRunner};
+use orion::KP;
 use orion::hazardous::ecc::x25519::key_agreement;
-use orion::hazardous::mac::poly1305::{OneTimeKey, Poly1305, POLY1305_KEYSIZE};
-use orion::hazardous::stream::chacha20::{SecretKey, CHACHA_KEYSIZE};
+use orion::hazardous::mac::poly1305::{OneTimeKey, POLY1305_KEYSIZE, Poly1305};
+use orion::hazardous::stream::chacha20::{CHACHA_KEYSIZE, SecretKey};
 use orion::pwhash::PWHASH_LENGTH;
 use orion::util::secure_cmp;
-use orion_dudect::{generate_input_classes, rand_input_vector, NUMBER_OF_SAMPLES};
+use orion_dudect::{NUMBER_OF_SAMPLES, generate_input_classes, rand_input_vector};
 // `Base64NoPadding` is the padding used in orion::pwhash::PasswordHash
 use crate::rand::RngExt;
 use ct_codecs::{Base64NoPadding, Decoder, Encoder};
+
+use orion::hazardous::dsa::{
+    FieldElement, MlDsa44, MlDsa65, MlDsa87, MlDsaParameters, Standard, mldsa44, mldsa65, mldsa87,
+    montgomery_reduce,
+};
+use orion::hazardous::kem::{FieldElement as MlKemFieldElement, barrett_reduce};
 
 // We only test one newtype that implements PartialEq, because they
 // all use the macro to implement it.
 fn test_newtype(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, CHACHA_KEYSIZE);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk0 = SecretKey::from_slice(&u[..]).unwrap();
-        let sk1 = SecretKey::from_slice(&v[..]).unwrap();
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
+        let sk0 = SecretKey::try_from(&u[..]).unwrap();
+        let sk1 = SecretKey::try_from(&v[..]).unwrap();
         runner.run_one(class, || sk0 == sk1);
     }
 }
@@ -35,16 +42,16 @@ fn test_newtype(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_newtype_slice(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, CHACHA_KEYSIZE);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk0 = SecretKey::from_slice(&u[..]).unwrap();
-        runner.run_one(class, || sk0 == &v[..]);
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
+        let sk0 = SecretKey::try_from(&u[..]).unwrap();
+        runner.run_one(class, || sk0 == v[..]);
     }
 }
 
 fn test_secure_cmp(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, 32);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
         runner.run_one(class, || secure_cmp(&u[..], &v[..]).is_ok());
     }
 }
@@ -52,9 +59,9 @@ fn test_secure_cmp(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, POLY1305_KEYSIZE);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
         // u will be used as SecretKey and v as message to be authenticated.
-        let sk = OneTimeKey::from_slice(&u[..]).unwrap();
+        let sk = OneTimeKey::try_from(&u[..]).unwrap();
         runner.run_one(class, || Poly1305::poly1305(&sk, &v[..]).unwrap());
     }
 }
@@ -62,9 +69,9 @@ fn test_poly1305(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_poly1305_verify(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, POLY1305_KEYSIZE);
 
-    for (class, (u, v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, v)) in classes.into_iter().zip(inputs) {
         // u will be used as SecretKey and v as message to be authenticated.
-        let sk = OneTimeKey::from_slice(&u[..]).unwrap();
+        let sk = OneTimeKey::try_from(&u[..]).unwrap();
         let expected = Poly1305::poly1305(&sk, &v[..]).unwrap();
 
         runner.run_one(class, || Poly1305::verify(&expected, &sk, &v[..]).is_ok());
@@ -74,7 +81,7 @@ fn test_poly1305_verify(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_ct_base64_encode(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, PWHASH_LENGTH);
 
-    for (class, (u, _v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, _v)) in classes.into_iter().zip(inputs) {
         runner.run_one(class, || Base64NoPadding::encode_to_string(&u[..]).unwrap());
     }
 }
@@ -82,7 +89,7 @@ fn test_ct_base64_encode(runner: &mut CtRunner, rng: &mut BenchRng) {
 fn test_ct_base64_decode(runner: &mut CtRunner, rng: &mut BenchRng) {
     let (inputs, classes) = generate_input_classes(rng, PWHASH_LENGTH);
 
-    for (class, (u, _v)) in classes.into_iter().zip(inputs.into_iter()) {
+    for (class, (u, _v)) in classes.into_iter().zip(inputs) {
         let encoded = Base64NoPadding::encode_to_string(&u[..]).unwrap();
 
         runner.run_one(class, || {
@@ -92,149 +99,89 @@ fn test_ct_base64_decode(runner: &mut CtRunner, rng: &mut BenchRng) {
 }
 
 fn test_x25519_scalarmul_base(runner: &mut CtRunner, rng: &mut BenchRng) {
-    use orion::hazardous::ecc::x25519::{PrivateKey, PublicKey, PRIVATE_KEY_SIZE};
-    let mut inputs: Vec<Vec<u8>> = Vec::new();
-    let mut classes = Vec::new();
+    use orion::hazardous::ecc::x25519::{PRIVATE_KEY_SIZE, PrivateKey, PublicKey};
+    let mut inputs: Vec<Vec<u8>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
-
         if rng.random::<bool>() {
+            inputs.push(vec![0u8; PRIVATE_KEY_SIZE]);
             classes.push(Class::Left);
         } else {
+            inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
             classes.push(Class::Right);
         }
     }
 
-    for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk = PrivateKey::from_slice(&k).unwrap_or(PrivateKey::generate());
+    for (class, k) in classes.into_iter().zip(inputs) {
+        let sk = PrivateKey::try_from(&k).unwrap();
         runner.run_one(class, || PublicKey::try_from(&sk).unwrap());
     }
 }
 
 fn test_x25519_scalarmul(runner: &mut CtRunner, rng: &mut BenchRng) {
-    use orion::hazardous::ecc::x25519::{PrivateKey, PublicKey, PRIVATE_KEY_SIZE};
-    let mut inputs: Vec<Vec<u8>> = Vec::new();
-    let mut classes = Vec::new();
+    use orion::hazardous::ecc::x25519::{PRIVATE_KEY_SIZE, PrivateKey, PublicKey};
+    let mut inputs: Vec<Vec<u8>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
-
         if rng.random::<bool>() {
+            inputs.push(vec![0u8; PRIVATE_KEY_SIZE]);
             classes.push(Class::Left);
         } else {
+            inputs.push(rand_input_vector(PRIVATE_KEY_SIZE, rng));
             classes.push(Class::Right);
         }
     }
 
-    for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
-        let sk = PrivateKey::from_slice(&k).unwrap_or(PrivateKey::generate());
-        let pk_other = PublicKey::try_from(&PrivateKey::generate()).unwrap();
+    let pk_other = PublicKey::try_from(&PrivateKey::generate().unwrap()).unwrap();
 
+    for (class, k) in classes.into_iter().zip(inputs) {
+        let sk = PrivateKey::try_from(&k).unwrap();
         runner.run_one(class, || key_agreement(&sk, &pk_other).unwrap());
     }
 }
 
-// src: https://github.com/orion-rs/orion/blob/master/src/hazardous/kem/ml_kem/internal/fe.rs
 const KYBER_Q: u32 = 3329;
 
-fn conditional_sub_u32(a: u32) -> u32 {
-    // Calculate a - mod
-    let t: u32 = a.overflowing_sub(KYBER_Q).0;
-
-    // Check if a >= mod (if t is non-negative)
-    // If a >= mod, mask will be 0xFFFFFFF, otherwise 0
-    let mask: u32 = 0u32.overflowing_sub(t >> 31).0;
-
-    // If mask is 0, return a (no subtraction), otherwise return t (a - mod)
-    (t & !mask) | (a & mask)
-}
-
-fn barrett_reduce(value: u32) -> u32 {
-    debug_assert!(value < KYBER_Q.pow(2));
-
-    const MUL: u64 = 5039;
-    const SHIFT: u64 = 24;
-
-    let quo: u32 = ((u64::from(value) * MUL) >> SHIFT) as u32;
-    let r = value - (quo * KYBER_Q);
-    // NOTE: Guaranteed now 0 <= r < 2q. This is where we add the
-    // conditional subtraction.
-    debug_assert!((0..KYBER_Q * 2).contains(&r));
-
-    let ret = conditional_sub_u32(r);
-    debug_assert!((0..KYBER_Q).contains(&ret));
-
-    ret
-}
-
 fn test_mlkem_barrett_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<u32> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<u32> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        // "Given value < 2q return value mod q (in [0, n])."
-        inputs.push(rng.random_range(0..(KYBER_Q * KYBER_Q)));
-
         if rng.random::<bool>() {
+            inputs.push((KYBER_Q * 2) - 1);
             classes.push(Class::Left);
         } else {
+            // "Given value < 2q return value mod q (in [0, n])."
+            inputs.push(rng.random_range(0..(KYBER_Q * KYBER_Q)));
             classes.push(Class::Right);
         }
     }
 
-    for (class, k) in classes.into_iter().zip(inputs.into_iter()) {
-        runner.run_one(class, || barrett_reduce(k));
+    for (class, k) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || barrett_reduce(*k));
     }
-}
-
-// src: https://github.com/orion-rs/orion/blob/master/src/hazardous/kem/ml_kem/internal/fe.rs
-fn decompress(y: u32, d: u8) -> u32 {
-    debug_assert!((1..=11).contains(&d));
-
-    let div: u32 = y * KYBER_Q;
-    let mut quo: u32 = div >> d as u32;
-    quo += (div >> (d as u32 - 1)) & 1;
-
-    debug_assert!(quo < KYBER_Q);
-
-    quo
-}
-
-fn compress(fe: u32, d: u8) -> u32 {
-    debug_assert!((1..=11).contains(&d));
-
-    const MUL: u64 = 5039;
-    const SHIFT: u64 = 24;
-
-    let div: u32 = fe << d;
-    let mut quo: u32 = ((u64::from(div) * MUL) >> SHIFT) as u32;
-    let rem: u32 = div - (quo * KYBER_Q);
-
-    quo += ((KYBER_Q / 2).overflowing_sub(rem).0 >> 31) & 1;
-    quo += ((KYBER_Q + KYBER_Q / 2 - rem) >> 31) & 1;
-
-    let mask: u32 = (1 << d as u32) - 1;
-
-    ((quo & mask) as u16) as u32
 }
 
 fn test_compress<const D: u8>(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<u32> = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: Vec<MlKemFieldElement> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
-        inputs.push(rng.random_range(0..2u32.pow(D as u32)));
-
         if rng.random::<bool>() {
+            inputs.push(MlKemFieldElement::new(KYBER_Q - 1));
             classes.push(Class::Left);
         } else {
+            inputs.push(MlKemFieldElement::new(
+                rng.random_range(0..2u32.pow(D as u32)),
+            ));
             classes.push(Class::Right);
         }
     }
 
-    for (class, x) in classes.into_iter().zip(inputs.into_iter()) {
-        runner.run_one(class, || compress(decompress(x, D), D));
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || MlKemFieldElement::decompress(x.compress(D), D));
     }
 }
 
@@ -262,6 +209,241 @@ fn test_compress_d11(runner: &mut CtRunner, rng: &mut BenchRng) {
     test_compress::<11u8>(runner, rng);
 }
 
+fn test_sk_decode_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
+    // These run a lot more processing so variations should show earlier than, e.g,
+    // simple PartialEq.
+    let mut inputs: Vec<mldsa44::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+
+    let mut seed = [0u8; 32];
+    rng.fill(&mut seed);
+    let fixed = mldsa44::Seed::from(seed);
+
+    for _ in 0..NUMBER_OF_SAMPLES / 4 {
+        if rng.random::<bool>() {
+            inputs.push(fixed.clone());
+            classes.push(Class::Left);
+        } else {
+            rng.fill(&mut seed);
+            inputs.push(mldsa44::Seed::from(seed));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, seed) in classes.into_iter().zip(inputs.iter()) {
+        // Expand KeyPair here, so we don't allocate multiple GiB of memomry for these tests!
+        // As long as it's not within runner.run_one() loop, should not be part of timing measurements.
+        let sk = mldsa44::KeyPair::try_from(seed)
+            .unwrap()
+            .private()
+            .unprotected_as_ref()
+            .to_vec();
+
+        runner.run_one(class, || {
+            MlDsa44::sk_decode::<{ MlDsa44::DIM_K }, { MlDsa44::DIM_L }>(&sk).unwrap()
+        });
+    }
+}
+
+fn test_sk_decode_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
+    let mut inputs: Vec<mldsa65::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+
+    let mut seed = [0u8; 32];
+    rng.fill(&mut seed);
+    let fixed = mldsa65::Seed::from(seed);
+
+    for _ in 0..NUMBER_OF_SAMPLES / 4 {
+        if rng.random::<bool>() {
+            inputs.push(fixed.clone());
+            classes.push(Class::Left);
+        } else {
+            rng.fill(&mut seed);
+            inputs.push(mldsa65::Seed::from(seed));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, seed) in classes.into_iter().zip(inputs.iter()) {
+        // Expand KeyPair here, so we don't allocate multiple GiB of memomry for these tests!
+        // As long as it's not within runner.run_one() loop, should not be part of timing measurements.
+        let sk = mldsa65::KeyPair::try_from(seed)
+            .unwrap()
+            .private()
+            .unprotected_as_ref()
+            .to_vec();
+
+        runner.run_one(class, || {
+            MlDsa65::sk_decode::<{ MlDsa65::DIM_K }, { MlDsa65::DIM_L }>(&sk).unwrap()
+        });
+    }
+}
+
+fn test_sk_decode_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
+    let mut inputs: Vec<mldsa87::Seed> = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES / 4);
+
+    let mut seed = [0u8; 32];
+    rng.fill(&mut seed);
+    let fixed = mldsa87::Seed::from(seed);
+
+    for _ in 0..NUMBER_OF_SAMPLES / 4 {
+        if rng.random::<bool>() {
+            inputs.push(fixed.clone());
+            classes.push(Class::Left);
+        } else {
+            rng.fill(&mut seed);
+            inputs.push(mldsa87::Seed::from(seed));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, seed) in classes.into_iter().zip(inputs.iter()) {
+        // Expand KeyPair here, so we don't allocate multiple GiB of memomry for these tests!
+        // As long as it's not within runner.run_one() loop, should not be part of timing measurements.
+        let sk = mldsa87::KeyPair::try_from(seed)
+            .unwrap()
+            .private()
+            .unprotected_as_ref()
+            .to_vec();
+
+        runner.run_one(class, || {
+            MlDsa87::sk_decode::<{ MlDsa87::DIM_K }, { MlDsa87::DIM_L }>(&sk).unwrap()
+        });
+    }
+}
+
+fn test_power2round<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
+    const DILITHIUM_Q: u32 = 8380417;
+
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(FieldElement::<Standard>::new(DILITHIUM_Q - 1));
+            classes.push(Class::Left);
+        } else {
+            inputs.push(FieldElement::<Standard>::new(
+                rng.random_range(0..DILITHIUM_Q),
+            ));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || x.power2round::<P>());
+    }
+}
+
+fn test_power2round_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_power2round::<MlDsa44>(runner, rng);
+}
+
+fn test_power2round_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_power2round::<MlDsa65>(runner, rng);
+}
+
+fn test_power2round_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_power2round::<MlDsa87>(runner, rng);
+}
+
+fn test_montgomery_reduce(runner: &mut CtRunner, rng: &mut BenchRng) {
+    const DILITHIUM_Q: u32 = 8380417;
+
+    let mut inputs: Vec<u64> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(0);
+            classes.push(Class::Left);
+        } else {
+            inputs.push(rng.random_range(0..=(DILITHIUM_Q as u64 - 1) * 2));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || montgomery_reduce(*x));
+    }
+}
+
+fn test_decompose<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
+    const DILITHIUM_Q: u32 = 8380417;
+
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(FieldElement::<Standard>::new(DILITHIUM_Q - 1));
+            classes.push(Class::Left);
+        } else {
+            inputs.push(FieldElement::<Standard>::new(
+                rng.random_range(0..DILITHIUM_Q),
+            ));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || x.decompose::<P>());
+    }
+}
+
+fn test_decompose_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_decompose::<MlDsa44>(runner, rng);
+}
+
+fn test_decompose_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_decompose::<MlDsa65>(runner, rng);
+}
+
+fn test_decompose_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_decompose::<MlDsa87>(runner, rng);
+}
+
+fn test_is_outside_bound<P: MlDsaParameters>(runner: &mut CtRunner, rng: &mut BenchRng) {
+    const DILITHIUM_Q: u32 = 8380417;
+
+    let mut inputs: Vec<FieldElement<Standard>> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes: Vec<Class> = Vec::with_capacity(NUMBER_OF_SAMPLES);
+
+    // The `bound` is a public parameter that depends on the ML-DSA
+    // parameterset. So that has to stay fixed, not the value of the
+    // field element.
+    let bound = P::ETA as u32 + 1;
+
+    for _ in 0..NUMBER_OF_SAMPLES {
+        if rng.random::<bool>() {
+            inputs.push(FieldElement::<Standard>::new(DILITHIUM_Q - 1));
+            classes.push(Class::Left);
+        } else {
+            inputs.push(FieldElement::<Standard>::new(
+                rng.random_range(0..DILITHIUM_Q),
+            ));
+            classes.push(Class::Right);
+        }
+    }
+
+    for (class, x) in classes.into_iter().zip(inputs.iter()) {
+        runner.run_one(class, || x.is_outside_bound(bound));
+    }
+}
+
+fn test_is_outside_bound_mldsa44(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_is_outside_bound::<MlDsa44>(runner, rng);
+}
+
+fn test_is_outside_bound_mldsa65(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_is_outside_bound::<MlDsa65>(runner, rng);
+}
+
+fn test_is_outside_bound_mldsa87(runner: &mut CtRunner, rng: &mut BenchRng) {
+    test_is_outside_bound::<MlDsa87>(runner, rng);
+}
+
 ctbench_main!(
     test_newtype,
     test_newtype_slice,
@@ -278,5 +460,18 @@ ctbench_main!(
     test_compress_d5,
     test_compress_d6,
     test_compress_d10,
-    test_compress_d11
+    test_compress_d11,
+    test_sk_decode_mldsa44,
+    test_sk_decode_mldsa65,
+    test_sk_decode_mldsa87,
+    test_power2round_mldsa44,
+    test_power2round_mldsa65,
+    test_power2round_mldsa87,
+    test_montgomery_reduce,
+    test_decompose_mldsa44,
+    test_decompose_mldsa65,
+    test_decompose_mldsa87,
+    test_is_outside_bound_mldsa44,
+    test_is_outside_bound_mldsa65,
+    test_is_outside_bound_mldsa87
 );

@@ -15,8 +15,8 @@ pub fn rand_input_vector(len: usize, rng: &mut BenchRng) -> Vec<u8> {
 
 /// Generate dudect input classes.
 pub fn generate_input_classes(rng: &mut BenchRng, input_len: usize) -> (DudectInput, Vec<Class>) {
-    let mut inputs: DudectInput = Vec::new();
-    let mut classes = Vec::new();
+    let mut inputs: DudectInput = Vec::with_capacity(NUMBER_OF_SAMPLES);
+    let mut classes = Vec::with_capacity(NUMBER_OF_SAMPLES);
 
     for _ in 0..NUMBER_OF_SAMPLES {
         let v1 = rand_input_vector(input_len, rng);
@@ -55,11 +55,11 @@ mod tests {
         let mut all_seed_pairs: Vec<NameAndSeed> = Vec::new();
         let mut all_tval_pairs: Vec<NameAndTValue> = Vec::new();
 
-        for line in reader.lines().filter_map(|result| result.ok()) {
-            let re_seed = Regex::new(r"(seeded with )[a-z,0-9,_]+").unwrap();
-            let re_result = Regex::new(r"(max t = )[+-]\d{0,5}.\d{0,5}").unwrap();
-            let re_name = Regex::new(r"(bench test_)[a-z,0-9,_]+").unwrap();
+        let re_seed = Regex::new(r"(seeded with )[a-z,0-9]+").unwrap();
+        let re_result = Regex::new(r"(max t = )[+-]\d+.\d+").unwrap();
+        let re_name = Regex::new(r"(bench test_)[a-z,0-9,_]+").unwrap();
 
+        for line in reader.lines().map_while(Result::ok) {
             for (cap_name, cap_res) in re_name
                 .captures_iter(&line)
                 .zip(re_result.captures_iter(&line))
@@ -105,12 +105,21 @@ mod tests {
             #[test]
             fn $test_name() {
                 let max_t_measurements = read_bench_out($bench_to_read);
-                for measurement in max_t_measurements.iter() {
-                    // max t must be in range of -4.5..4.5.
-                    let custom_err = format!("dudect test found to break threshold: name: {}, t value: {}, seed: {:?}", measurement.0, measurement.1, measurement.2);
-                    assert!(measurement.1 <= 4.5f64, "{}", custom_err);
-                    assert!(measurement.1 >= -4.5f64, "{}", custom_err);
-                }
+                assert!(
+                    !max_t_measurements.is_empty(),
+                    "dudect bencher parsed no results at all!"
+                );
+
+                // max t must be in range of -4.5..4.5.
+                let failures: Vec<_> = max_t_measurements
+                    .iter()
+                    .filter(|m| m.1.abs() > 4.5)
+                    .collect();
+                assert!(
+                    failures.is_empty(),
+                    "dudect test found to break threshold: {:?}",
+                    &failures
+                );
             }
         };
     }
